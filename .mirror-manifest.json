@@ -1,0 +1,17 @@
+{
+  "sourceCommit": "b1c8c6d3b6113b72c4f3bd2b5b08ce949a98d3a5",
+  "name": "metricpanel/php",
+  "version": "0.1.0",
+  "files": {
+    "LICENSE": "dfcfcf3e5ea0d00c0c2161cfe77d98e237ac6c1ec114d926e43113805012cf63",
+    "README.md": "ed57714b8582e2150ab06d16fe621aacff423b5660dac6e18bc6b9a8b42a0696",
+    "composer.json": "bd28fcbf9797b769bbf3d0f8ecabd83bcf683c9b479843f8ad3a2e86ed504493",
+    "src/Client.php": "a8114eb5c1df7ed9d6b13bc686f46fea60e72f22d640435348f1c43263e9e4b7",
+    "src/CurlTransport.php": "0542c682963ddac92625c04c02177424e9f7d057145a203f2d8b415e6c9475fb",
+    "src/DeliveryException.php": "ae8e1e2d6cc9f945afa74d3370b70816fb85be889cf5cc578917d94d4b4e47ef",
+    "src/HttpResponse.php": "ba10db1e6eeaba4f6f8a2c3c995f6c2ba6585ed6e33a6618f45f824303b0f162",
+    "src/Money.php": "efef73b6ae7120d8138520e096b7b56c79c0725969c572dc992819ecb82897d7",
+    "src/Transport.php": "1848304ff3865dd952e1555c014feb8d270c9fa3017c98e41b8f4a3057237c73",
+    "tests/run.php": "a2313c15a4b30d36940d65396d4cbc8846030e91b963380e34d1618d3d8f26d1"
+  }
+}

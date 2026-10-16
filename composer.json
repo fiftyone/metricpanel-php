@@ -1,0 +1,19 @@
+{
+  "name": "metricpanel/php",
+  "description": "Authenticated MetricPanel server events and exact iGaming payment delivery",
+  "type": "library",
+  "license": "MIT",
+  "require": {
+    "php": "^8.2",
+    "ext-json": "*",
+    "ext-curl": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "MetricPanel\\": "src/"
+    }
+  },
+  "scripts": {
+    "test": "php tests/run.php"
+  }
+}
