@@ -40,3 +40,28 @@ Install locally through a Composer path repository with an explicit development 
 
 Run `php tests/run.php`. Tests use only an in-memory fake HTTP transport and make no network
 or database requests. Applications can inject their own `Transport` implementation.
+
+## User identification (0.2.0)
+
+Requires the identity-enabled MetricPanel API and website cookieless/GDPR modes disabled.
+Use the visitor and session IDs supplied by your frontend SDK; do not substitute the user ID
+for either. Persist the event ID and timestamp with the payload and reuse them on retries.
+
+```php
+$identity = [
+    'eventId' => 'stable-identify-event-123',
+    'websiteId' => 'your-public-website-id',
+    'visitorId' => $browserVisitorId,
+    'sessionId' => $browserSessionId,
+    'timestamp' => '2026-10-27T10:00:00Z',
+    'userId' => 'user_123',
+    'name' => 'Jane Smith',
+    'email' => 'jane@example.com',
+];
+$client->identify($identity);
+```
+
+Name and email are optional; `null` clears a trait. Identification records no conversion or
+revenue. It links existing visitor activity to a website-scoped profile. A different user cannot
+reuse the same visitor ID (HTTP 409); reset the frontend SDK on logout/account switching first.
+This is not an authentication mechanism. The API token requires `events:write` access.

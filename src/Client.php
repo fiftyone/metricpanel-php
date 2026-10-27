@@ -63,6 +63,37 @@ final class Client
         return $this->event($event);
     }
 
+    /** Link a browser visitor to a user without recording an analytics event. */
+    public function identify(array $event): array
+    {
+        foreach (['eventId', 'websiteId', 'visitorId', 'sessionId', 'timestamp', 'userId'] as $field) {
+            if (!is_string($event[$field] ?? null) || trim($event[$field]) === '') {
+                throw new \InvalidArgumentException("{$field} is required for identification.");
+            }
+        }
+        if (strlen($event['eventId']) < 16 || strlen($event['userId']) > 200) {
+            throw new \InvalidArgumentException('Provide a stable event ID (16+ characters) and a user ID of at most 200 characters.');
+        }
+        $identity = ['userId' => trim($event['userId'])];
+        foreach (['name', 'email'] as $field) {
+            if (!array_key_exists($field, $event)) continue;
+            $value = $event[$field];
+            if ($value !== null && (!is_string($value) || trim($value) === '' || strlen($value) > ($field === 'name' ? 200 : 254))) {
+                throw new \InvalidArgumentException("Invalid identity {$field}.");
+            }
+            if ($field === 'email' && $value !== null && !filter_var(trim($value), FILTER_VALIDATE_EMAIL)) {
+                throw new \InvalidArgumentException('Invalid identity email.');
+            }
+            $identity[$field] = $value === null ? null : trim($value);
+        }
+        $payload = array_intersect_key($event, array_flip(['eventId', 'websiteId', 'visitorId', 'sessionId', 'timestamp']));
+        $result = $this->post('/api/events', [...$payload, 'type' => 'identify', 'path' => '/', 'identity' => $identity]);
+        if (($result['identified'] ?? false) !== true && ($result['suppressed'] ?? false) !== true) {
+            throw new DeliveryException(true, 202, 'invalid_acknowledgement');
+        }
+        return $result;
+    }
+
     /** Commerce revenue only. Payment volumes and corrections belong in igaming(). */
     public function revenue(array $event): array
     {
@@ -84,7 +115,7 @@ final class Client
             $delay = max(1, $seconds);
         }
         if ($response->status < 200 || $response->status >= 300) {
-            $code = $data['error']['code'] ?? 'http_error';
+            $code = is_array($data['error'] ?? null) ? ($data['error']['code'] ?? 'http_error') : ($data['code'] ?? 'http_error');
             if (!is_string($code) || !preg_match('/\A[a-z_]{1,80}\z/', $code)) $code = 'http_error';
             throw new DeliveryException($retryable, $response->status, $code, $delay);
         }

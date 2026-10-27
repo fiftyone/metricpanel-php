@@ -56,3 +56,21 @@ $transport->response = new HttpResponse(200, '{"status":"success","data":{"creat
 try { $client->igaming($event); throw new RuntimeException('Mismatched acknowledgement accepted'); }
 catch (DeliveryException $e) { check($e->errorCode === 'invalid_acknowledgement', 'Wrong acknowledgement handling'); }
 echo "PHP SDK transport, exact amount, idempotency and retry checks passed.\n";
+
+$identity = ['eventId' => 'stable-identity-event-123', 'websiteId' => 'site', 'visitorId' => 'visitor', 'sessionId' => 'session', 'timestamp' => '2026-10-27T10:00:00Z', 'userId' => 'user-123', 'name' => 'Jane', 'email' => 'jane@example.com'];
+$transport->response = new HttpResponse(202, '{"success":true,"identified":true}');
+$client->identify($identity);
+$firstIdentityCall = end($transport->calls);
+$client->identify($identity);
+check(end($transport->calls) === $firstIdentityCall, 'Identity retries changed payload');
+check($firstIdentityCall[0] === 'https://api.metricpanel.test/api/events', 'Incorrect identity endpoint');
+check($firstIdentityCall[2]['identity'] === ['userId' => 'user-123', 'name' => 'Jane', 'email' => 'jane@example.com'], 'Identity fields lost');
+check(!isset($firstIdentityCall[2]['email']), 'Identity leaked outside its dedicated object');
+foreach ([['userId' => ''], ['email' => 'bad'], ['name' => str_repeat('x', 201)]] as $invalid) {
+    try { $client->identify([...$identity, ...$invalid]); throw new RuntimeException('Invalid identity accepted'); }
+    catch (InvalidArgumentException) {}
+}
+$transport->response = new HttpResponse(409, '{"error":"Reset the visitor", "code":"identity_conflict"}');
+try { $client->identify($identity); throw new RuntimeException('Identity conflict accepted'); }
+catch (DeliveryException $e) { check(!$e->retryable && $e->status === 409, 'Identity conflict must fail permanently'); }
+echo "PHP identity validation, payload, retry and conflict checks passed.\n";
